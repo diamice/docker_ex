@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["python", "bot.py"]
+CMD ["python", "fsm_aiogram.py"]

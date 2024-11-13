@@ -41,7 +41,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: root
-          password: ${{ secrets.SSH_PASSWORD }}  # Укажите ваш пароль в секретах
+          password: ${{ secrets.SSH_PASSWORD }}
           source: "docker-compose.prod.yml"
           target: "docker_ex"
 

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    image: ${DOCKER_USERNAME}/docker_ex:${GITHUB_SHA}
+    image: ${DOCKER_USERNAME}/docker_ex
     container_name: fsm_aiogram_prod
     restart: always
     env_file: .env

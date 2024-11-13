@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-redis = Redis(host='localhost')
+redis = Redis(host=os.getenv('REDIS_HOST', 'localhost'), port=int(os.getenv('REDIS_PORT', 6379)))
 
 storage = RedisStorage(redis=redis)
 

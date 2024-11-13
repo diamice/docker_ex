@@ -22,41 +22,39 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # Шаг 4: Строим Docker-образ
-    - name: Build Docker image
-      run: |
-        docker build -t myapp .
-
-    # Шаг 5: Тестируем контейнер (если у вас есть тесты)
-    - name: Run tests
-      run: |
-        docker run myapp pytest  # Замените на команду для тестирования, если нужно
-
-    # Шаг 6: Публикуем Docker-образ в Docker Hub (если необходимо)
-    - name: Push Docker image to Docker Hub
-      run: |
-        docker tag myapp ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
-        docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+    - name: Push to DockerHub
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/docker_ex:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Этот шаг запускается после успешного завершения шага build
+    needs: build
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Check Repository
+        uses: actions/checkout@v3
 
-    # Шаг 1: Настроим SSH для деплоя на сервер
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Copy docker-compose.yml via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          password: ${{ secrets.SSH_PASSWORD }}  # Укажите ваш пароль в секретах
+          source: "docker-compose.prod.yml"
+          target: "docker_ex"
 
-    # Шаг 2: Деплой контейнера на сервер
-    - name: Deploy to server
-      run: |
-        ssh -o StrictHostKeyChecking=no user@your_server_ip "
-          docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} && \
-          docker stop myapp || true && \
-          docker rm myapp || true && \
-          docker run -d --name myapp -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}"
+      - name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd ~/docker_ex
+            sudo docker-compose -f docker-compose.prod.yml pull  
+            sudo docker-compose -f docker-compose.prod.yml down   
+            sudo docker-compose -f docker-compose.prod.yml up -d 
+            sudo docker-compose -f docker-compose.prod.yml exec python fsm_aiogram.py 
+            sudo docker system prune -af

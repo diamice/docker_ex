@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  app:
+    image: ${DOCKER_USERNAME}/docker_ex:${GITHUB_SHA}
+    container_name: fsm_aiogram_prod
+    restart: always
+    env_file: .env
+    ports:
+      - "80:80"
+    volumes:
+      - ./app_data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: redis_prod
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

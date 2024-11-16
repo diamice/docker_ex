@@ -240,21 +240,19 @@ async def process_wish_news_press(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     user_data = await state.get_data()
     user_dict[callback.from_user.id] = user_data
-    await callback.message.answer(
-        text=f'Анкета заполнена!\n\n'
-             f'Ваши данные:\n\n'
-             f'Имя: {user_data["name"]}\n'
-             f'Возраст: {user_data["age"]}\n'
-             f'Пол: {user_data["gender"]}\n'
-             f'Фото:'
-    )
-    await callback.message.answer_photo(user_data["photo_id"])
-    await callback.message.answer(
-        text=f'Образование: {user_data["education"]}\n'
-             f'Получать новости: {user_data["wish_news"]}'
-    )
-    await state.clear()
 
+    caption = (
+        f'Анкета заполнена!\n\n'
+        f'Ваши данные:\n\n'
+        f'Имя: {user_data["name"]}\n'
+        f'Возраст: {user_data["age"]}\n'
+        f'Пол: {user_data["gender"]}\n'
+        f'Образование: {user_data["education"]}\n'
+        f'Получать новости: {user_data["wish_news"]}'
+    )
+
+    await callback.message.answer_photo(photo=user_data["photo_id"], caption=caption)
+    await state.clear()
 
 
 @dp.callback_query(StateFilter(FSMFillForm.fill_wish_news))
